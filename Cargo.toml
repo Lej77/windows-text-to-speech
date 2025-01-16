@@ -1,0 +1,26 @@
+[package]
+name = "windows_text_to_speech"
+version = "0.1.0"
+edition = "2021"
+authors = ["Lej77 <31554212+Lej77@users.noreply.github.com>"]
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+anyhow = "1"                                           # Errors with backtrace
+pollster = { version = "0.4.0", features = ["macro"] } # Simple async runtime
+# futures-executor = "0.3.31" # Simple async runtime
+
+[dependencies.windows]
+version = "0.59.0"
+features = [
+    "Win32_System_Com",               # Common COM functionality
+    "Win32_Media_Speech",             # Legacy text-to-speech API
+    "Media_SpeechSynthesis",          # Modern text-to-speech API
+    "Media_Core",                     # Modern text-to-speech API (some extra methods)
+    "Storage_Streams",                # Modern text-to-speech API (some extra methods)
+    "Media_Playback",                 # Play audio from modern text-to-speech
+    "Win32_Globalization",            # Detect language
+    "Foundation_Collections",         # Collection with all voices
+    "Wdk_System_SystemServices",      # For RtlGetVersion
+    "Win32_System_SystemInformation", # For RtlGetVersion return type
+]

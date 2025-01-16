@@ -10,6 +10,8 @@ This repository contains a Rust CLI program that uses Windows' text-to-speech AP
 cargo install --git "https://github.com/Lej77/windows-text-to-speech"
 # Latest "windows_text_to_speech.exe" will be built and placed inside "%UserProfile%/.cargo/bin/"
 windows_text_to_speech.exe This text will be read
+
+cargo uninstall windows_text_to_speech
 ```
 
 If you have cloned this repository, then you can run the code using:
@@ -30,6 +32,8 @@ If you have [Cargo B(inary)Install](https://github.com/cargo-bins/cargo-binstall
 cargo binstall --git "https://github.com/Lej77/windows-text-to-speech" windows_text_to_speech
 # Latest "windows_text_to_speech.exe" will be downloaded to "%UserProfile%/.cargo/bin/"
 windows_text_to_speech.exe This text will be read
+
+cargo uninstall windows_text_to_speech
 ```
 
 ## References

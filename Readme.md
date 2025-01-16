@@ -18,8 +18,8 @@ This repository contains a Rust CLI program that uses Windows' text-to-speech AP
 
 This project is released under either:
 
-- [MIT License](https://github.com/Lej77/cast_trait_object/blob/master/LICENSE-MIT)
-- [Apache License (Version 2.0)](https://github.com/Lej77/cast_trait_object/blob/master/LICENSE-APACHE)
+- [MIT License](./LICENSE-MIT)
+- [Apache License (Version 2.0)](./LICENSE-APACHE)
 
 at your choosing.
 

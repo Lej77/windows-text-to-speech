@@ -2,6 +2,7 @@
 name = "windows_text_to_speech"
 version = "0.1.0"
 edition = "2021"
+repository = "https://github.com/Lej77/windows-text-to-speech"
 authors = ["Lej77 <31554212+Lej77@users.noreply.github.com>"]
 license = "MIT OR Apache-2.0"
 

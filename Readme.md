@@ -4,7 +4,15 @@ This repository contains a Rust CLI program that uses Windows' text-to-speech AP
 
 ## Usage
 
-[Install Rust](https://www.rust-lang.org/tools/install) and clone this repository, then you can run:
+[Install Rust](https://www.rust-lang.org/tools/install) and then you can install this program from source:
+
+```powershell
+cargo install --git "https://github.com/Lej77/windows-text-to-speech"
+# Latest "windows_text_to_speech.exe" will be built and placed inside "%UserProfile%/.cargo/bin/"
+windows_text_to_speech.exe This text will be read
+```
+
+If you have cloned this repository, then you can run the code using:
 
 ```powershell
 cargo run -- This text will be read

@@ -30,4 +30,5 @@ features = [
 # Inform `cargo-binstall` how to download from our releases:
 # https://github.com/cargo-bins/cargo-binstall/blob/main/SUPPORT.md
 [package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }{ archive-suffix }"
 pkg-fmt = "bin"

@@ -10,6 +10,7 @@ license = "MIT OR Apache-2.0"
 anyhow = "1"                                           # Errors with backtrace
 pollster = { version = "0.4.0", features = ["macro"] } # Simple async runtime
 # futures-executor = "0.3.31" # Simple async runtime
+clap = { version = "4", features = ["derive"] } # Parse CLI arguments
 
 [dependencies.windows]
 version = "0.59.0"

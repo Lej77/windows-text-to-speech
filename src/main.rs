@@ -13,6 +13,7 @@
 use std::{ptr::null_mut, time::Duration};
 
 use anyhow::{bail, Context};
+use clap::Parser;
 use windows::{
     core::{Interface, GUID, HSTRING, PCWSTR},
     Media::{
@@ -169,9 +170,29 @@ impl Drop for DetectionService {
     }
 }
 
+/// Uses Windows APIs for text-to-speech.
+#[derive(Parser)]
+struct Args {
+    /// Skip the legacy text-to-speech output.
+    #[clap(long)]
+    no_legacy: bool,
+
+    /// Skip the modern text-to-speech output.
+    #[clap(long)]
+    no_modern: bool,
+
+    /// Print info about all installed voices.
+    #[clap(long)]
+    print_all_voices: bool,
+
+    /// Text that should be converted to speech.
+    text: Vec<String>,
+}
+
 #[pollster::main]
 async fn main() -> anyhow::Result<()> {
-    let text = std::env::args().skip(1).collect::<Vec<_>>().join(" ");
+    let args = Args::parse();
+    let text = args.text.join(" ");
     if text.is_empty() {
         bail!("Should specify text to read as command line arguments");
     }
@@ -179,90 +200,113 @@ async fn main() -> anyhow::Result<()> {
     let text_utf16 = to_utf16(&text);
 
     // Legacy SAPI:
-    unsafe { CoInitialize(None).ok()? };
-    let voice: ISpVoice = unsafe { CoCreateInstance(&SpVoice, None, CLSCTX_ALL) }?;
-    unsafe { voice.Speak(PCWSTR::from_raw(text_utf16.as_ptr()), 0, None) }?;
-    unsafe { CoUninitialize() };
-    println!("Finished with legacy voice output\n");
-
-    if !is_windows_10()? {
-        eprintln!("Modern text-to-speech API is only available in Windows 10 or newer");
-        std::process::exit(2);
+    if !args.no_legacy {
+        unsafe { CoInitialize(None).ok()? };
+        let voice: ISpVoice = unsafe { CoCreateInstance(&SpVoice, None, CLSCTX_ALL) }?;
+        unsafe { voice.Speak(PCWSTR::from_raw(text_utf16.as_ptr()), 0, None) }?;
+        unsafe { CoUninitialize() };
+        println!("Finished with legacy voice output\n");
     }
 
-    let detected_language_ranges = {
-        let detection_service =
-            DetectionService::new().context("Failed to find language detection service")?;
-        detection_service
-            .recognize_text(&text_utf16)
-            .context("Failed to recognize text language")?
-    };
-    println!(
-        "Count of detected Language ranges: {}",
-        detected_language_ranges.len()
-    );
-    for mut detected_language_info in detected_language_ranges {
-        let text_utf16 = &text_utf16[detected_language_info.start..=detected_language_info.end];
-        let detected_language = detected_language_info.languages.remove(0);
-        println!(
-            "First range of text ({}-{}): {}",
-            detected_language_info.start,
-            detected_language_info.end,
-            String::from_utf16_lossy(text_utf16)
-        );
-        println!(
-            "\tDetected language as \"{detected_language}\", secondly as: {:?}",
-            detected_language_info.languages
-        );
+    if !args.no_modern {
+        if !is_windows_10()? {
+            eprintln!("Modern text-to-speech API is only available in Windows 10 or newer");
+            std::process::exit(2);
+        }
 
-        let synth = SpeechSynthesizer::new()?;
-        let default_voice = synth.Voice()?;
-        let right_lang = |voice: &VoiceInformation| -> anyhow::Result<bool> {
-            Ok(voice
-                .Language()?
-                .to_string_lossy()
-                .to_lowercase()
-                .contains(&detected_language.to_lowercase()))
+        let detected_language_ranges = {
+            let detection_service =
+                DetectionService::new().context("Failed to find language detection service")?;
+            detection_service
+                .recognize_text(&text_utf16)
+                .context("Failed to recognize text language")?
         };
+        println!(
+            "Count of detected Language ranges: {}",
+            detected_language_ranges.len()
+        );
+        for lang_detection in detected_language_ranges {
+            let text_utf16 = &text_utf16[lang_detection.start..=lang_detection.end];
+            println!(
+                "First range of text ({}-{}): {}",
+                lang_detection.start,
+                lang_detection.end,
+                String::from_utf16_lossy(text_utf16)
+            );
+            println!(
+                "\tDetected possible languages (prefer earlier ones): {:?}",
+                lang_detection.languages
+            );
 
-        if !right_lang(&default_voice)? {
-            println!("Default voice doesn't match, find one that does");
+            let synth = SpeechSynthesizer::new()?;
+            let default_voice = synth.Voice()?;
             let all_voices = SpeechSynthesizer::AllVoices()?;
 
-            println!("All voices:");
-            for voice in &all_voices {
-                println!("Voice: {}", voice.DisplayName()?.to_string_lossy());
-                println!("\tid: {}", voice.Id()?.to_string_lossy());
-                println!("\tLang: {}", voice.Language()?.to_string_lossy());
-                println!();
-            }
-
-            for voice in &all_voices {
-                if right_lang(&voice)? {
-                    println!("Selected voice: {}", voice.DisplayName()?.to_string_lossy());
-                    synth.SetVoice(&voice)?;
-                    break;
+            if args.print_all_voices {
+                println!("\nAll voices:");
+                for voice in &all_voices {
+                    println!("Voice: {}", voice.DisplayName()?.to_string_lossy());
+                    println!("\tid: {}", voice.Id()?.to_string_lossy());
+                    println!("\tLang: {}", voice.Language()?.to_string_lossy());
+                    println!();
                 }
             }
-        }
-        let stream = synth
-            .SynthesizeTextToStreamAsync(&HSTRING::from_wide(text_utf16))?
-            .await?;
-        let stream: IRandomAccessStream = stream.cast()?;
 
-        let player = MediaPlayer::new()?;
-        player.SetStreamSource(&stream)?;
-        player.Play()?;
-        loop {
-            let state = player.CurrentState()?;
-            if let MediaPlayerState::Stopped | MediaPlayerState::Paused = state {
-                break;
+            'find_lang: for wanted_lang in &lang_detection.languages {
+                let right_lang = |voice: &VoiceInformation| -> anyhow::Result<bool> {
+                    Ok(voice
+                        .Language()?
+                        .to_string_lossy()
+                        .to_lowercase()
+                        .contains(&wanted_lang.to_lowercase()))
+                };
+
+                if right_lang(&default_voice)? {
+                    println!(
+                        "Default voice \"{}\" matches the wanted language",
+                        default_voice.DisplayName()?.to_string_lossy()
+                    );
+                    break;
+                } else {
+                    println!(
+                        "Default voice doesn't match language {wanted_lang}, find one that does"
+                    );
+
+                    for voice in &all_voices {
+                        if right_lang(&voice)? {
+                            println!("Selected voice: {}", voice.DisplayName()?.to_string_lossy());
+                            synth.SetVoice(&voice)?;
+                            break 'find_lang; // Break out of two loops
+                        }
+                    }
+                }
+
+                println!(
+                    "No voice for the detected language \"{wanted_lang}\", \
+                    checking for less likely languages"
+                );
             }
-            std::thread::sleep(Duration::from_millis(100));
-        }
-    }
+            println!();
 
-    println!("Finished with modern voice output");
+            let stream = synth
+                .SynthesizeTextToStreamAsync(&HSTRING::from_wide(text_utf16))?
+                .await?;
+            let stream: IRandomAccessStream = stream.cast()?;
+
+            let player = MediaPlayer::new()?;
+            player.SetStreamSource(&stream)?;
+            player.Play()?;
+            loop {
+                let state = player.CurrentState()?;
+                if let MediaPlayerState::Stopped | MediaPlayerState::Paused = state {
+                    break;
+                }
+                std::thread::sleep(Duration::from_millis(100));
+            }
+        }
+
+        println!("Finished with modern voice output");
+    }
 
     Ok(())
 }

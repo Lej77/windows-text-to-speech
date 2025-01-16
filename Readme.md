@@ -16,6 +16,14 @@ Alternatively download the `windows_text_to_speech.exe` binary from the [latest 
 ./windows_text_to_speech.exe This text will be read
 ```
 
+If you have [Cargo B(inary)Install](https://github.com/cargo-bins/cargo-binstall) then it can download the latest release for you:
+
+```powershell
+cargo binstall --git "https://github.com/Lej77/windows-text-to-speech" windows_text_to_speech
+# Latest "windows_text_to_speech.exe" will be downloaded to "%UserProfile%/.cargo/bin/"
+windows_text_to_speech.exe This text will be read
+```
+
 ## References
 
 - There are two APIs: [text to speech - Windows 10 TTS voices not showing up? - Stack

@@ -2,6 +2,20 @@
 
 This repository contains a Rust CLI program that uses Windows' text-to-speech APIs to read text passed to the program.
 
+## Usage
+
+[Install Rust](https://www.rust-lang.org/tools/install) and clone this repository, then you can run:
+
+```powershell
+cargo run -- This text will be read
+```
+
+Alternatively download the `windows_text_to_speech.exe` binary from the [latest release](https://github.com/Lej77/windows-text-to-speech/releases) and run that from the command line:
+
+```powershell
+./windows_text_to_speech.exe This text will be read
+```
+
 ## References
 
 - There are two APIs: [text to speech - Windows 10 TTS voices not showing up? - Stack

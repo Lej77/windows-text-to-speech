@@ -24,3 +24,9 @@ features = [
     "Wdk_System_SystemServices",      # For RtlGetVersion
     "Win32_System_SystemInformation", # For RtlGetVersion return type
 ]
+
+
+# Inform `cargo-binstall` how to download from our releases:
+# https://github.com/cargo-bins/cargo-binstall/blob/main/SUPPORT.md
+[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
+pkg-fmt = "bin"

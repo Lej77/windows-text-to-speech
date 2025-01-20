@@ -19,7 +19,6 @@ use windows::{
                 KEY_WOW64_64KEY, REG_SZ,
             },
         },
-        UI::Shell::PathQuoteSpacesW,
     },
 };
 
@@ -48,25 +47,23 @@ const UNINSTALL_ARGS: &str = " --uninstall";
 fn add_uninstall_registry_key() -> anyhow::Result<()> {
     // Gather info:
     let mut uninstall_cmd_line = [0_u16; MAX_PATH as usize + UNINSTALL_ARGS.len()];
+    char::encode_utf16('"', &mut uninstall_cmd_line[..1]);
 
-    let mut len = unsafe { GetModuleFileNameW(None, &mut uninstall_cmd_line[..MAX_PATH as usize]) };
+    let mut len =
+        unsafe { GetModuleFileNameW(None, &mut uninstall_cmd_line[1..MAX_PATH as usize + 1]) };
     if len == 0 || len == MAX_PATH {
         return Err(windows::core::Error::from_win32().into());
     }
-    let did_add_quotes = unsafe {
-        PathQuoteSpacesW(
-            &mut uninstall_cmd_line[..MAX_PATH as _]
-                .try_into()
-                .expect("should have length of MAX_PATH"),
-        )
-    };
-    if did_add_quotes.as_bool() {
-        len += 2;
-    }
+
+    char::encode_utf16('"', &mut uninstall_cmd_line[len as usize + 1..][..1]);
+    len += 2; // for quotes
+
     assert_ne!(
         uninstall_cmd_line[len as usize - 1],
         0,
-        "last string character should not be a nul terminator"
+        "last string character should not be a nul terminator\n\t\
+            string: {}",
+        String::from_utf16_lossy(&uninstall_cmd_line[..len as usize]),
     );
     assert_eq!(
         uninstall_cmd_line[len as usize], 0,

@@ -81,10 +81,10 @@ If you installed the `windows_tts_engine_piper.dll` text-to-speech engine then i
       > Only Microsoft-signed voices installed on the system can be used to generate speech.
 
       So it is likely not easy to develop new voices for this API.
+  - Rust library that uses this API: [tts 0.26.3 - Docs.rs](https://docs.rs/crate/tts/latest/source/src/backends/winrt.rs)
 - Detect language: [Microsoft Language Detection - Win32 apps | Microsoft Learn](https://learn.microsoft.com/en-us/windows/win32/intl/microsoft-language-detection)
   - [About Extended Linguistic Services - Win32 apps | Microsoft Learn](https://learn.microsoft.com/pl-pl/windows/win32/intl/about-extended-linguistic-services)
   - [Requesting Text Recognition - Win32 apps | Microsoft Learn](https://learn.microsoft.com/pl-pl/windows/win32/intl/requesting-text-recognition) (C++ example code)
-  - Rust library that uses this API: [tts 0.26.3 - Docs.rs](https://docs.rs/crate/tts/latest/source/src/backends/winrt.rs)
 
 ### High quality offline text-to-speech
 

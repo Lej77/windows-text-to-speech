@@ -2,7 +2,6 @@ use std::{ptr::null_mut, string::FromUtf16Error};
 
 use windows::{
     core::{Error as WinError, GUID},
-    Media::SpeechSynthesis::VoiceInformation,
     Win32::Globalization::{
         MappingFreePropertyBag, MappingFreeServices, MappingGetServices, MappingRecognizeText,
         ELS_GUID_LANGUAGE_DETECTION, MAPPING_ENUM_OPTIONS, MAPPING_PROPERTY_BAG,

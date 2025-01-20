@@ -1,7 +1,6 @@
 use std::{path::PathBuf, sync::OnceLock};
 
-use windows::Win32::Foundation::MAX_PATH;
-
+#[cfg(any(feature = "release_logging", debug_assertions))]
 use crate::utils::{get_current_dll_path, safe_catch_unwind};
 
 pub struct DllLogger {
@@ -23,7 +22,7 @@ impl DllLogger {
         #[cfg(any(feature = "release_logging", debug_assertions))]
         safe_catch_unwind::<_, ()>(std::panic::AssertUnwindSafe(|| {
             let Some(log_path) = self.log_path.get_or_init(|| {
-                let mut buffer = [0; MAX_PATH as usize];
+                let mut buffer = [0; windows::Win32::Foundation::MAX_PATH as usize];
                 Some(
                     std::path::PathBuf::from(
                         String::from_utf16(get_current_dll_path(&mut buffer).ok()?).ok()?,

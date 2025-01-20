@@ -27,8 +27,26 @@ jobs:
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
-          name: release_binary
-          path: target/release/windows_text_to_speech.exe
+          name: release_cli
+          path: target/release/windows_tts_cli.exe
+
+      - name: Build release dll and installer
+        run: cargo build --release --workspace
+        env:
+          # https://rust-lang.github.io/rfcs/1721-crt-static.html
+          RUSTFLAGS: -C target-feature=+crt-static
+
+      - name: Upload engine dll
+        uses: actions/upload-artifact@v4
+        with:
+          name: release_dll
+          path: target/release/windows_tts_engine.dll
+
+      - name: Upload engine installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: release_installer
+          path: target/release/windows_tts_engine_installer.exe
 
   release:
     name: Release
@@ -37,10 +55,20 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download binary from previous job
+      - name: Download cli from previous job
         uses: actions/download-artifact@v4
         with:
-          name: release_binary
+          name: release_cli
+
+      - name: Download dll from previous job
+        uses: actions/download-artifact@v4
+        with:
+          name: release_dll
+
+      - name: Download installer from previous job
+        uses: actions/download-artifact@v4
+        with:
+          name: release_installer
 
       # Create the release:  https://github.com/actions/create-release
       - name: Create release
@@ -55,15 +83,39 @@ jobs:
           prerelease: false
 
       # Upload release asset:   https://github.com/actions/upload-release-asset
-      - name: Upload release asset
-        id: upload-release-asset
+      - name: Upload release asset (cli)
+        id: upload-release-asset-cli
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}  # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: windows_text_to_speech.exe
-          asset_name: windows_text_to_speech.exe
+          asset_path: windows_tts_cli.exe
+          asset_name: windows_tts_cli.exe
           # https://stackoverflow.com/questions/41459168/which-mime-type-is-correct-for-the-exe-file
           asset_content_type: application/vnd.microsoft.portable-executable
           # asset_content_type: application/zip
+
+      - name: Upload release asset (dll)
+        id: upload-release-asset-dll
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}  # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: windows_tts_engine.dll
+          asset_name: windows_tts_engine.dll
+          # https://stackoverflow.com/questions/41459168/which-mime-type-is-correct-for-the-exe-file
+          asset_content_type: application/vnd.microsoft.portable-executable
+
+      - name: Upload release asset (dll installer)
+        id: upload-release-asset-installer
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}  # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: windows_tts_engine_installer.exe
+          asset_name: windows_tts_engine_installer.exe
+          # https://stackoverflow.com/questions/41459168/which-mime-type-is-correct-for-the-exe-file
+          asset_content_type: application/vnd.microsoft.portable-executable

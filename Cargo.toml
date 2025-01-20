@@ -1,35 +1,21 @@
-[package]
-name = "windows_text_to_speech"
+[workspace]
+members = ["crates/*"]
+resolver = "2"
+
+# Ensure `cargo run` works:
+default-members = ["crates/windows_tts_cli"]
+
+# More info at: https://doc.rust-lang.org/cargo/reference/workspaces.html
+
+[workspace.package]
 version = "0.1.1"
-edition = "2021"
-repository = "https://github.com/Lej77/windows-text-to-speech"
 authors = ["Lej77 <31554212+Lej77@users.noreply.github.com>"]
+repository = "https://github.com/Lej77/windows-text-to-speech"
 license = "MIT OR Apache-2.0"
 
-[dependencies]
-anyhow = "1"                                           # Errors with backtrace
-pollster = { version = "0.4.0", features = ["macro"] } # Simple async runtime
-# futures-executor = "0.3.31" # Simple async runtime
-clap = { version = "4", features = ["derive"] } # Parse CLI arguments
-
-[dependencies.windows]
-version = "0.59.0"
-features = [
-    "Win32_System_Com",               # Common COM functionality
-    "Win32_Media_Speech",             # Legacy text-to-speech API
-    "Media_SpeechSynthesis",          # Modern text-to-speech API
-    "Media_Core",                     # Modern text-to-speech API (some extra methods)
-    "Storage_Streams",                # Modern text-to-speech API (some extra methods)
-    "Media_Playback",                 # Play audio from modern text-to-speech
-    "Win32_Globalization",            # Detect language
-    "Foundation_Collections",         # Collection with all voices
-    "Wdk_System_SystemServices",      # For RtlGetVersion
-    "Win32_System_SystemInformation", # For RtlGetVersion return type
-]
-
-
-# Inform `cargo-binstall` how to download from our releases:
-# https://github.com/cargo-bins/cargo-binstall/blob/main/SUPPORT.md
-[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
-pkg-url = "{ repo }/releases/download/v{ version }/{ name }{ archive-suffix }"
-pkg-fmt = "bin"
+[workspace.dependencies]
+# Declare common crates here so that we can easily keep the version in sync when we upgrade:
+windows-core = "0.59.0" # Required by macros sometimes
+windows = "0.59.0"
+winresource = "0.1.19"
+log = "0.4.25"

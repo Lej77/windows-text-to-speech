@@ -1,0 +1,12 @@
+Windows Registry Editor Version 5.00
+
+; Similar to example at:
+; https://stackoverflow.com/questions/75279682/implementing-a-windows-credential-provider
+
+[HKEY_CLASSES_ROOT\CLSID\{F91EF41B-D593-442E-8730-064336410310}]
+@="windows_tts_engine"
+
+[HKEY_CLASSES_ROOT\CLSID\{F91EF41B-D593-442E-8730-064336410310}\InprocServer32]
+; Should be absolute path:
+@="windows_tts_engine.dll"
+"ThreadingModel"="Apartment"

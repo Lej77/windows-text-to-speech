@@ -1,0 +1,38 @@
+[package]
+name = "windows_tts_engine_dll"
+edition = "2021"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+license.workspace = true
+description = "A DLL that is a COM server and offers a text-to-speech engine for Windows"
+
+[lib]
+# https://stackoverflow.com/questions/75279682/implementing-a-windows-credential-provider
+name = "windows_tts_engine"
+crate-type = ["cdylib"]
+
+[dependencies]
+windows_tts_engine = { path = "../windows_tts_engine" } # We moved a lot of logic into this crate
+
+log = { workspace = true, features = [
+    "release_max_level_off",
+] } # Disable any logging in release mode
+
+[dependencies.windows]
+workspace = true
+features = [
+    "Win32_Foundation",       # For MAX_PATH and S_OK
+    "Win32_System_Ole",       # For SELFREG_E_CLASS
+    "Win32_System_Registry",  # For RegCreateKeyExW
+    "Win32_Security",         # For RegCreateKeyExW
+    "Win32_Media_Speech",     # For ISpTTSEngineSite
+    "Media_SpeechSynthesis",  # Modern text-to-speech API
+    "Media_Core",             # Modern text-to-speech API (some extra methods)
+    "Storage_Streams",        # Modern text-to-speech API (some extra methods)
+    "Media_Playback",         # Play audio from modern text-to-speech
+    "Foundation_Collections", # Collection with all voices
+]
+
+[build-dependencies]
+winresource = { workspace = true }

@@ -1,0 +1,25 @@
+[package]
+name = "windows_tts_engine_installer"
+edition = "2021"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+license.workspace = true
+description = "An installer that registers a DLL file as a COM Server and text-to-speech engine."
+
+[dependencies]
+clap = { version = "4", features = ["derive", "cargo"] } # CLI argument parsing
+anyhow = "1"                                             # Errors with backtrace
+runas = "1.2.0"                                          # Run a command as root (sudo)
+
+[dependencies.windows]
+workspace = true
+features = [
+    "Win32_System_Registry",      # For RegCreateKeyExW
+    "Win32_Security",             # For RegCreateKeyExW
+    "Win32_System_LibraryLoader", # For GetModuleFileNameW
+    "Win32_UI_Shell",             # For PathQuoteSpacesW
+]
+
+[build-dependencies]
+winresource = { workspace = true }

@@ -1,0 +1,30 @@
+[package]
+name = "windows_tts_engine"
+version.workspace = true
+edition = "2021"
+repository.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Safer bindings for developing text-to-speech engines for Windows"
+
+[features]
+docs = [] # Nightly docs for cfg attribute
+release_logging = [] # Enable `DllLogger` in release mode
+
+[dependencies]
+windows-core = { workspace = true } # Required by macros
+log = { workspace = true }
+
+[dependencies.windows]
+workspace = true
+features = [
+    "Win32_Media_Speech",
+    "Win32_Media_Audio",          # For ISpTTSEngine_Impl trait
+    "Win32_System_Com",           # For IClassFactory
+    "Win32_System",               # For GetModuleHandleEx
+    "Win32_Foundation",           # For MAX_PATH
+    "Win32_System_LibraryLoader", # For GetModuleFileNameW
+    "Win32_System_Registry",      # For RegCreateKeyExW
+    "Win32_Security",             # For RegCreateKeyExW
+    "Win32_Globalization",        # Detect language
+]

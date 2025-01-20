@@ -1,17 +1,19 @@
 # Windows text-to-speech
 
-This repository contains a Rust CLI program that uses Windows' text-to-speech APIs to read text passed to the program.
+This repository contains a Rust CLI program that uses Windows' text-to-speech APIs to read text passed to the program. You can find the source code in `./crates/windows_tts_cli/`.
 
-## Usage
+This repository also contains a text-to-speech engine which uses Microsoft Language Detection to determine the sent language and then selects a voice in that language and plays the text using the `Windows.Media.SpeechSynthesis.SpeechSynthesizer` class.
+
+## Usage of `windows_tts_cli`
 
 [Install Rust](https://www.rust-lang.org/tools/install) and then you can install this program from source:
 
 ```powershell
 cargo install --git "https://github.com/Lej77/windows-text-to-speech"
-# Latest "windows_text_to_speech.exe" will be built and placed inside "%UserProfile%/.cargo/bin/"
-windows_text_to_speech.exe This text will be read
+# Latest "windows_tts_cli.exe" will be built and placed inside "%UserProfile%/.cargo/bin/"
+windows_tts_cli.exe This text will be read
 
-cargo uninstall windows_text_to_speech
+cargo uninstall windows_tts_cli
 ```
 
 If you have cloned this repository, then you can run the code using:
@@ -20,25 +22,53 @@ If you have cloned this repository, then you can run the code using:
 cargo run -- This text will be read
 ```
 
-Alternatively download the `windows_text_to_speech.exe` binary from the [latest release](https://github.com/Lej77/windows-text-to-speech/releases) and run that from the command line:
+Alternatively download the `windows_tts_cli.exe` binary from the [latest release](https://github.com/Lej77/windows-text-to-speech/releases) and run that from the command line:
 
 ```powershell
-./windows_text_to_speech.exe This text will be read
+./windows_tts_cli.exe This text will be read
 ```
 
 If you have [Cargo B(inary)Install](https://github.com/cargo-bins/cargo-binstall) then it can download the latest release for you:
 
 ```powershell
-cargo binstall --git "https://github.com/Lej77/windows-text-to-speech" windows_text_to_speech
-# Latest "windows_text_to_speech.exe" will be downloaded to "%UserProfile%/.cargo/bin/"
-windows_text_to_speech.exe This text will be read
+cargo binstall --git "https://github.com/Lej77/windows-text-to-speech" windows_tts_cli
+# Latest "windows_tts_cli.exe" will be downloaded to "%UserProfile%/.cargo/bin/"
+windows_tts_cli.exe This text will be read
 
-cargo uninstall windows_text_to_speech
+cargo uninstall windows_tts_cli
 ```
+
+## Usage of `windows_tts_engine`
+
+1. Acquire `windows_tts_engine_installer.exe` and at least one text-to-speech engine like `windows_tts_engine.dll` or `windows_tts_engine_piper.dll`.
+   - You can find them in the [latest GitHub release](https://github.com/Lej77/windows-text-to-speech/releases).
+   - Or you can build them from source:
+     1. [Install Rust](https://www.rust-lang.org/tools/install)
+     2. Clone this repository:\
+        `git clone https://github.com/Lej77/windows-text-to-speech.git`
+     3. Build everything in the repository:\
+        `cargo build --release --workspace`
+     4. You should find the built files inside the `./target/release` folder.
+2. Place all files in the same directory and run the installer.
+   - Actually you don't need the installer, just run `regsvr32 ./windows_tts_engine.dll` for each of the text-to-speech engine DLLs to install them.
+     - This won't add an uninstall entry in Windows Settings app.
+     - This command needs to run with admin rights, otherwise it will fail.
+3. You can now find and select the voice in Windows Control Panel under the `Speech Recognition` icon then the `Text to Speech` link in the left sidebar.
+   - The text-to-speech engine will **NOT** be visible in the modern Settings app under the\
+      `Time & Languages` > `Speech` > `Voices` option.
+   - The text-to-speech engine **WILL** be visible in the modern Settings app under\
+     `Accessibility` > `Narrator` > `Choose a voice` option.
+4. If you move the files you need to re-install them, otherwise Windows won't be able to find them.
+5. Uninstall the program using the command `windows_tts_engine_installer.exe --uninstall` or through Windows Settings app (the `Programs and Features` panel).
+   - Note that the uninstaller won't remove any files, it will only unregister the program from Windows by removing Windows Registry entries.
+   - If you installed the text-to-speech engine without the install then you can uninstall it using `regsvr32 /u ./windows_tts_engine.dll`. (Use the full path if the terminal isn't in the same folder as the dll file.)
+     - This command needs to run with admin rights, otherwise it will fail.
+
+If you installed the `windows_tts_engine_piper.dll` text-to-speech engine then it will expect a folder named `piper_models` inside the same folder as the DLL file. In the `piper_models` folder you need to put `.onnx.json` model configs and `.onnx` model files for the engine to work.
 
 ## References
 
-Text-to-speech on Windows:
+### Text-to-speech on Windows
 
 - There are two APIs: [text to speech - Windows 10 TTS voices not showing up? - Stack
   Overflow](https://stackoverflow.com/questions/40406719/windows-10-tts-voices-not-showing-up/40427509#40427509)
@@ -46,11 +76,17 @@ Text-to-speech on Windows:
   Learn](https://learn.microsoft.com/en-us/previous-versions/windows/desktop/ms720163(v=vs.85))
 - Modern API: [Windows.Media.SpeechSynthesis Namespace - Windows apps | Microsoft
   Learn](https://learn.microsoft.com/en-us/uwp/api/windows.media.speechsynthesis?view=winrt-26100&redirectedfrom=MSDN)
+  - [SpeechSynthesizer Class (Windows.Media.SpeechSynthesis) - Windows apps | Microsoft Learn](https://learn.microsoft.com/en-us/uwp/api/windows.media.speechsynthesis.speechsynthesizer?view=winrt-26100#examples) (C++ example code)
+    - Remarks mention that:
+      > Only Microsoft-signed voices installed on the system can be used to generate speech.
+
+      So it is likely not easy to develop new voices for this API.
 - Detect language: [Microsoft Language Detection - Win32 apps | Microsoft Learn](https://learn.microsoft.com/en-us/windows/win32/intl/microsoft-language-detection)
   - [About Extended Linguistic Services - Win32 apps | Microsoft Learn](https://learn.microsoft.com/pl-pl/windows/win32/intl/about-extended-linguistic-services)
-  - [Requesting Text Recognition - Win32 apps | Microsoft Learn](https://learn.microsoft.com/pl-pl/windows/win32/intl/requesting-text-recognition)
+  - [Requesting Text Recognition - Win32 apps | Microsoft Learn](https://learn.microsoft.com/pl-pl/windows/win32/intl/requesting-text-recognition) (C++ example code)
+  - Rust library that uses this API: [tts 0.26.3 - Docs.rs](https://docs.rs/crate/tts/latest/source/src/backends/winrt.rs)
 
-High quality offline text-to-speech:
+### High quality offline text-to-speech
 
 - Google TTS: <https://stackoverflow.com/questions/63930953/google-speech-to-text-available-offline>
   - <https://cloud.google.com/speech-to-text/ondevice>
@@ -71,6 +107,32 @@ High quality offline text-to-speech:
       - <https://users.rust-lang.org/t/text-to-speech-for-rust/110824>
   - <https://github.com/k2-fsa/sherpa-onnx>: Speech-to-text, text-to-speech, speaker diarization, and VAD using next-gen Kaldi with onnxruntime without Internet connection
     - <https://github.com/thewh1teagle/sherpa-rs>: Rust bindings to `k2-fsa/sherpa-onnx`
+      - Supports model recommended at: [Kokoro TTS works now in Rust : r/rust](https://www.reddit.com/r/rust/comments/1i4kqmv/kokoro_tts_works_now_in_rust/)
+
+### Develop new text-to-speech voices/engines for **legacy** Microsoft Speech API (SAPI)
+
+- Has some useful links: [How to make a new SAPI voice for text-to-speech? - Stack Overflow](https://stackoverflow.com/questions/22881861/how-to-make-a-new-sapi-voice-for-text-to-speech)
+
+- Guide: [TTS Engine Vendor Porting Guide (SAPI 5.3) | Microsoft Learn](https://learn.microsoft.com/en-us/previous-versions/windows/desktop/ms717037(v=vs.85)?redirectedfrom=MSDN)
+
+- Interface reference: [Text-to-speech recognition engine manager (DDI-level) (SAPI 5.3) | Microsoft Learn](https://learn.microsoft.com/en-us/previous-versions/windows/desktop/ms717235(v=vs.85))
+
+- Example: [eSpeak: speech synthesis - Browse /espeak/espeak-1.48 at SourceForge.net](https://sourceforge.net/projects/espeak/files/espeak/espeak-1.48/)
+
+  - Note: `eSpeak` voices don't seem to work on 64bit systems. Their registry keys are added to `HKLM\SOFTWARE\WOW6432Node\Microsoft\SPEECH\Voices\Tokens\eSpeak` and even if the `WOW6432Node` path segment is removed Windows won't find the COM service anyway (but the entries will show up in the Control Panel's selector of default SAPI voice).
+
+  - Note: the modern `eSpeak-ng` doesn't support SAPI yet, but the issue has some useful info:\
+    [Reimplement the SAPI bindings. · Issue #7 · espeak-ng/espeak-ng](https://github.com/espeak-ng/espeak-ng/issues/7#issuecomment-2527109323)
+
+    - Links to this project which installs SAPI voices: [gexgd0419/NaturalVoiceSAPIAdapter](https://github.com/gexgd0419/NaturalVoiceSAPIAdapter)
+
+- [Add new TTS technology/project (Coqui / Piper TTS) to SAPI - Microsoft Q&A](https://learn.microsoft.com/en-us/answers/questions/1444682/add-new-tts-technology-project-(coqui-piper-tts)-t)
+
+  - [Sample Engines (SAPI 5.3) | Microsoft Learn](https://learn.microsoft.com/en-us/previous-versions/windows/desktop/ms720179(v=vs.85))
+
+- Somewhat related: [How to add custom SR (Speech Recognition) to Microsoft SAPI - Stack Overflow](https://stackoverflow.com/questions/16851914/how-to-add-custom-sr-speech-recognition-to-microsoft-sapi)
+
+- [System.Speech.Synthesis.TtsEngine Namespace | Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/api/system.speech.synthesis.ttsengine?view=net-9.0-pp) (see Remarks for "guide")
 
 ## License
 

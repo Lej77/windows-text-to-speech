@@ -31,7 +31,7 @@ jobs:
           path: target/release/windows_tts_cli.exe
 
       - name: Build release dll and installer
-        run: cargo build --release --workspace
+        run: cargo build --release --package windows_tts_engine_dll --package windows_tts_engine_installer
         env:
           # https://rust-lang.github.io/rfcs/1721-crt-static.html
           RUSTFLAGS: -C target-feature=+crt-static

@@ -5046,7 +5046,7 @@ checksum = "581fee95406bb13382d2f65cd4a908ca7b1e4c2f1917f143ba16efe98a589b5d"
 
 [[package]]
 name = "windows_tts_cli"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "anyhow",
  "clap 4.5.26",
@@ -5060,7 +5060,7 @@ dependencies = [
 
 [[package]]
 name = "windows_tts_engine"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "log",
  "windows 0.59.0",
@@ -5069,7 +5069,7 @@ dependencies = [
 
 [[package]]
 name = "windows_tts_engine_dll"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "log",
  "windows 0.59.0",
@@ -5079,7 +5079,7 @@ dependencies = [
 
 [[package]]
 name = "windows_tts_engine_installer"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "anyhow",
  "clap 4.5.26",
@@ -5090,7 +5090,7 @@ dependencies = [
 
 [[package]]
 name = "windows_tts_engine_piper_dll"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "log",
  "piper-rs",

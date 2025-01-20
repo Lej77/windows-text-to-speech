@@ -1,3 +1,8 @@
+#![cfg_attr(
+    not(any(feature = "release_logging", debug_assertions)),
+    expect(dead_code)
+)]
+
 use std::{path::PathBuf, sync::OnceLock};
 
 #[cfg(any(feature = "release_logging", debug_assertions))]

@@ -216,7 +216,7 @@ macro_rules! _dll_export_com_server_fns {
         ///
         /// Signature from: [rust - Implementing a Windows Credential Provider - Stack Overflow](https://stackoverflow.com/questions/75279682/implementing-a-windows-credential-provider)
         #[no_mangle]
-        unsafe extern "stdcall" fn DllGetClassObject(
+        pub unsafe extern "stdcall" fn DllGetClassObject(
             rclsid: *const $crate::windows::core::GUID,
             riid: *const $crate::windows::core::GUID,
             ppv: *mut *mut ::core::ffi::c_void,
@@ -228,7 +228,7 @@ macro_rules! _dll_export_com_server_fns {
         ///
         /// Signature from: [rust - Implementing a Windows Credential Provider - Stack Overflow](https://stackoverflow.com/questions/75279682/implementing-a-windows-credential-provider)
         #[no_mangle]
-        unsafe extern "stdcall" fn DllCanUnloadNow() -> $crate::windows::core::HRESULT {
+        pub unsafe extern "stdcall" fn DllCanUnloadNow() -> $crate::windows::core::HRESULT {
             <$server as $crate::com_server::ComServer>::DllCanUnloadNow()
         }
 

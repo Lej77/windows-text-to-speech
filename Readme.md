@@ -9,7 +9,7 @@ This repository also contains a text-to-speech engine which uses Microsoft Langu
 [Install Rust](https://www.rust-lang.org/tools/install) and then you can install this program from source:
 
 ```powershell
-cargo install --git "https://github.com/Lej77/windows-text-to-speech"
+cargo install --git "https://github.com/Lej77/windows-text-to-speech" windows_tts_cli
 # Latest "windows_tts_cli.exe" will be built and placed inside "%UserProfile%/.cargo/bin/"
 windows_tts_cli.exe This text will be read
 

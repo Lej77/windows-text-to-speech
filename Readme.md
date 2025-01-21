@@ -64,7 +64,18 @@ cargo uninstall windows_tts_cli
    - If you installed the text-to-speech engine without the install then you can uninstall it using `regsvr32 /u ./windows_tts_engine.dll`. (Use the full path if the terminal isn't in the same folder as the dll file.)
      - This command needs to run with admin rights, otherwise it will fail.
 
-If you installed the `windows_tts_engine_piper.dll` text-to-speech engine then it will expect a folder named `piper_models` inside the same folder as the DLL file. In the `piper_models` folder you need to put `.onnx.json` model configs and `.onnx` model files for the engine to work.
+If you installed the `windows_tts_engine_piper.dll` text-to-speech engine then it will expect a folder named `piper_models` inside the same folder as the DLL file. In the `piper_models` folder you need to put `.onnx.json` model configs and `.onnx` model files for the engine to work. You can also add `.voice.txt` files next to the model files with a single integer in each to specify the voice/speaker used (for models with multiple speakers).
+
+Example file structure:
+
+- `C:\Program Files\Lej77TextToSpeech`
+  - `piper_models`
+    - `en_US-libritts_r-medium.onnx`
+    - `en_US-libritts_r-medium.onnx.json`
+    - `en_US-libritts_r-medium.voice.txt`
+  - `windows_tts_engine.dll`
+  - `windows_tts_engine_installer.exe`
+  - `windows_tts_engine_piper.dll`
 
 ## References
 

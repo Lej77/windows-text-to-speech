@@ -51,6 +51,7 @@ pub struct ModelConfig {
 }
 
 pub struct PiperModelInfo {
+    /// Path to JSON config.
     pub path: PathBuf,
     pub language: Option<Language>,
 }
@@ -139,6 +140,22 @@ impl OurTtsEngine {
 
         Some(models)
     }
+    pub fn voice_to_select(&self, mut config_path: PathBuf) -> Option<i64> {
+        config_path.set_extension("");
+        config_path.set_extension("voice.txt");
+        let content = std::fs::read_to_string(&config_path)
+            .map_err(|e| {
+                log::warn!(
+                    "Failed to read voice.txt info at \"{}\": {e}",
+                    config_path.display()
+                )
+            })
+            .ok()?;
+        content
+            .parse::<i64>()
+            .map_err(|e| log::error!("Speaker ID should be number: {e}"))
+            .ok()
+    }
 }
 impl SafeTtsEngine for OurTtsEngine {
     fn set_object_token(&self, _token: &ISpObjectToken) -> windows::core::Result<()> {
@@ -210,10 +227,11 @@ impl SafeTtsEngine for OurTtsEngine {
                 .expect("failed to get audio format info");
 
             // Set speaker ID
-            // if let Some(sid) = sid {
-            //     let sid = sid.parse::<i64>().expect("Speaker ID should be number!");
-            //     model.set_speaker(sid);
-            // }
+            if let Some(sid) = self.voice_to_select(preferred_model.path.clone()) {
+                if let Some(e) = model.set_speaker(sid) {
+                    log::error!("Failed to set speaker: {e}");
+                }
+            }
             let synth =
                 PiperSpeechSynthesizer::new(model).expect("Failed to create piper synthesizer");
             let audio = synth

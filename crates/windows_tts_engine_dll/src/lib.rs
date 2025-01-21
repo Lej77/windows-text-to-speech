@@ -142,7 +142,8 @@ impl SafeTtsEngine for OurTtsEngine {
                 buffer = vec![0_u16; size as usize / 2];
                 reader.ReadBytes(unsafe { buffer.as_mut_slice().align_to_mut::<u8>().1 })?;
 
-                Output::Data(buffer.as_slice())
+                // Discard .wav header (44 bytes)
+                Output::Data(&buffer[44..])
             };
 
             loop {

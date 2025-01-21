@@ -152,6 +152,7 @@ impl OurTtsEngine {
             })
             .ok()?;
         content
+            .trim()
             .parse::<i64>()
             .map_err(|e| log::error!("Speaker ID should be number: {e}"))
             .ok()

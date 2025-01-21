@@ -8,7 +8,7 @@ default-members = ["crates/windows_tts_cli"]
 # More info at: https://doc.rust-lang.org/cargo/reference/workspaces.html
 
 [workspace.package]
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Lej77 <31554212+Lej77@users.noreply.github.com>"]
 repository = "https://github.com/Lej77/windows-text-to-speech"
 license = "MIT OR Apache-2.0"

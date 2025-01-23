@@ -9,6 +9,36 @@ use windows::{
     },
 };
 
+pub fn equal_language_codes(first: &str, second: &str) -> bool {
+    const SEPARATORS: [char; 2] = ['_', '-'];
+
+    if first.contains(SEPARATORS) && second.contains(SEPARATORS) {
+        // Only care about suffixes like `US` if both codes contain them `en-US`.
+        first == second
+    } else {
+        first
+            .split_once(SEPARATORS)
+            .map(|(prefix, _)| prefix)
+            .unwrap_or(first)
+            == second
+                .split_once(SEPARATORS)
+                .map(|(prefix, _)| prefix)
+                .unwrap_or(second)
+    }
+}
+
+pub fn has_multiple_languages<S>(languages: impl IntoIterator<Item = S>) -> bool
+where
+    S: AsRef<str>,
+{
+    let mut languages = languages.into_iter();
+    let Some(first) = languages.next() else {
+        return false;
+    };
+    // Search for another language:
+    languages.any(|other| !equal_language_codes(first.as_ref(), other.as_ref()))
+}
+
 #[derive(Debug)]
 pub enum DetectionError {
     MappingGetServices(WinError),
@@ -59,7 +89,7 @@ impl DetectedLanguage {
     pub fn get_priority(&self, lang_code: &str) -> Option<usize> {
         self.languages
             .iter()
-            .position(|detected| lang_code.starts_with(detected))
+            .position(|detected| equal_language_codes(detected, lang_code))
     }
 }
 

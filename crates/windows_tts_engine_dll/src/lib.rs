@@ -1,6 +1,6 @@
 //! Defines a COM Server that offers a text-to-speech engine for Windows.
 
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use windows::{
     core::{Interface, GUID, HSTRING},
@@ -24,7 +24,7 @@ use windows_tts_engine::{
     com_server::{
         dll_export_com_server_fns, ComClassInfo, ComServerPath, ComThreadingModel, SafeTtsComServer,
     },
-    detect_languages::DetectionService,
+    detect_languages::{has_multiple_languages, DetectedLanguage, DetectionService},
     logging::DllLogger,
     voices::{ParentRegKey, VoiceAttributes, VoiceKeyData},
     SafeTtsEngine, SpeechFormat, TextFrag, TextFragIter,
@@ -67,45 +67,77 @@ impl SafeTtsEngine for OurTtsEngine {
         let all_text = String::from_utf16_lossy(&text_utf16);
         log::debug!("Speak: {all_text}");
 
-        let detected_language_ranges = DetectionService::new()
-            .expect("Failed to find language detection service")
-            .recognize_text(&text_utf16)
-            .expect("Failed to recognize text language");
-        log::debug!("Speak - Detected languages");
+        let all_voices = SpeechSynthesizer::AllVoices()?;
+        let has_multiple_languages = has_multiple_languages(
+            (&all_voices)
+                .into_iter()
+                .filter_map(|voice| voice.Language().ok())
+                .map(|hstring| hstring.to_string_lossy())
+                // ignore difference between `en-US` and `en-GB`:
+                .map(|lang| {
+                    lang.split_once(['_', '-'])
+                        .map(|(prefix, _)| prefix.to_owned())
+                        .unwrap_or(lang)
+                }),
+        );
+
+        let detected_language_ranges = if has_multiple_languages {
+            let started_lang_detect = Instant::now();
+            let detected = DetectionService::new()
+                .expect("Failed to find language detection service")
+                .recognize_text(&text_utf16)
+                .expect("Failed to recognize text language");
+
+            log::debug!(
+                "Speak - Detected languages (duration: {:?}",
+                started_lang_detect.elapsed()
+            );
+            detected
+        } else {
+            log::debug!("Speak - Skipped language detection since only one language is installed");
+            vec![DetectedLanguage {
+                start: 0,
+                end: all_text.len().saturating_sub(1),
+                languages: Vec::new(),
+            }]
+        };
 
         for lang_range in detected_language_ranges {
             let text_utf16 = &text_utf16[lang_range.start..=lang_range.end];
             let synth = SpeechSynthesizer::new()?;
-            let mut selected_voice = synth.Voice()?;
-            let mut selected_priority = selected_voice
-                .Language()
-                .ok()
-                .and_then(|lang| lang_range.get_priority(&lang.to_string_lossy()))
-                .unwrap_or(usize::MAX);
 
-            for voice in SpeechSynthesizer::AllVoices()? {
-                let priority = voice
+            if has_multiple_languages {
+                let mut selected_voice = synth.Voice()?;
+                let mut selected_priority = selected_voice
                     .Language()
                     .ok()
                     .and_then(|lang| lang_range.get_priority(&lang.to_string_lossy()))
                     .unwrap_or(usize::MAX);
-                if priority < selected_priority {
-                    selected_voice = voice;
-                    selected_priority = priority;
+
+                for voice in &all_voices {
+                    let priority = voice
+                        .Language()
+                        .ok()
+                        .and_then(|lang| lang_range.get_priority(&lang.to_string_lossy()))
+                        .unwrap_or(usize::MAX);
+                    if priority < selected_priority {
+                        selected_voice = voice;
+                        selected_priority = priority;
+                    }
                 }
-            }
 
-            log::debug!(
-                "Speak - Selected voice\n\tLanguages: {:?}\n\tVoice: {}",
-                lang_range.languages,
-                selected_voice
-                    .DisplayName()
-                    .map(|s| s.to_string_lossy())
-                    .unwrap_or_else(|_| "unnamed".to_owned())
-            );
+                log::debug!(
+                    "Speak - Selected voice\n\tLanguages: {:?}\n\tVoice: {}",
+                    lang_range.languages,
+                    selected_voice
+                        .DisplayName()
+                        .map(|s| s.to_string_lossy())
+                        .unwrap_or_else(|_| "unnamed".to_owned())
+                );
 
-            if let Err(e) = synth.SetVoice(&selected_voice) {
-                log::debug!("Failed to set voice: {e}");
+                if let Err(e) = synth.SetVoice(&selected_voice) {
+                    log::debug!("Failed to set voice: {e}");
+                }
             }
 
             let synth_options = synth.Options()?;

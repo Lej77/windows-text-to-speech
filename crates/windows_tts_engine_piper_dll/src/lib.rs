@@ -22,7 +22,7 @@ use windows_tts_engine::{
     com_server::{
         dll_export_com_server_fns, ComClassInfo, ComServerPath, ComThreadingModel, SafeTtsComServer,
     },
-    detect_languages::DetectionService,
+    detect_languages::{has_multiple_languages, DetectedLanguage, DetectionService},
     logging::DllLogger,
     utils::get_current_dll_path,
     voices::{ParentRegKey, VoiceAttributes, VoiceKeyData},
@@ -182,11 +182,39 @@ impl SafeTtsEngine for OurTtsEngine {
             return Ok(());
         };
 
-        let detected_language_ranges = DetectionService::new()
-            .expect("Failed to find language detection service")
-            .recognize_text(&text_utf16)
-            .expect("Failed to recognize text language");
-        log::debug!("Speak - Detected languages");
+        let has_multiple_languages = has_multiple_languages(
+            models
+                .iter()
+                .filter_map(|model| model.language.as_ref())
+                .map(|lang| lang.code.as_str())
+                // ignore difference between `en-US` and `en-GB`:
+                .map(|lang| {
+                    lang.split_once(['_', '-'])
+                        .map(|(prefix, _)| prefix)
+                        .unwrap_or(lang)
+                }),
+        );
+
+        let detected_language_ranges = if has_multiple_languages {
+            let started_lang_detect = Instant::now();
+            let detected = DetectionService::new()
+                .expect("Failed to find language detection service")
+                .recognize_text(&text_utf16)
+                .expect("Failed to recognize text language");
+
+            log::debug!(
+                "Speak - Detected languages (duration: {:?}",
+                started_lang_detect.elapsed()
+            );
+            detected
+        } else {
+            log::debug!("Speak - Skipped language detection since only one language is installed");
+            vec![DetectedLanguage {
+                start: 0,
+                end: all_text.len().saturating_sub(1),
+                languages: Vec::new(),
+            }]
+        };
 
         for lang_range in detected_language_ranges {
             let text_utf16 = &text_utf16[lang_range.start..=lang_range.end];

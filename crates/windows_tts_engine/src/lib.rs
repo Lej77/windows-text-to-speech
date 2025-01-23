@@ -8,8 +8,9 @@
 //! - Installing an engine: [Sample Engines (SAPI 5.3) | Microsoft Learn](https://learn.microsoft.com/en-us/previous-versions/windows/desktop/ms720179(v=vs.85))
 //! - [System.Speech.Synthesis.TtsEngine Namespace | Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/api/system.speech.synthesis.ttsengine?view=net-9.0-pp)
 
-use std::sync::Arc;
+use std::{mem::ManuallyDrop, panic::AssertUnwindSafe, sync::Arc};
 
+use utils::safe_catch_unwind;
 use windows::Win32::Media::{
     Audio::WAVEFORMATEX,
     Speech::{ISpObjectToken, ISpTTSEngineSite, SPVSTATE, SPVTEXTFRAG},
@@ -211,6 +212,7 @@ mod private_impls {
     };
     use core::ffi::c_void;
     use std::{
+        mem::ManuallyDrop,
         ptr::{self, null_mut},
         sync::{Arc, OnceLock},
     };
@@ -243,7 +245,8 @@ mod private_impls {
     pub struct WindowsTtsEngineFactory {
         pub(super) tts_engine_class_id: GUID,
         pub(super) module_ref: Option<Arc<()>>,
-        pub(super) create_tts_engine: Box<dyn Fn() -> Box<dyn SafeTtsEngine> + Send + Sync>,
+        pub(super) create_tts_engine:
+            ManuallyDrop<Box<dyn Fn() -> Box<dyn SafeTtsEngine> + Send + Sync>>,
     }
 
     /// Required for Windows to create and start our service when a client requests it.
@@ -314,7 +317,7 @@ mod private_impls {
 
     #[implement(ISpTTSEngine, ISpObjectWithToken)]
     pub struct WindowsTtsEngine {
-        pub(super) engine: Box<dyn SafeTtsEngine>,
+        pub(super) engine: ManuallyDrop<Box<dyn SafeTtsEngine>>,
         pub(super) module_ref: Option<Arc<()>>,
         pub(super) token: OnceLock<ISpObjectToken>,
     }
@@ -489,7 +492,7 @@ impl WindowsTtsEngine {
     }
     pub fn new_boxed(engine: Box<dyn SafeTtsEngine>, module_ref: Option<Arc<()>>) -> Self {
         Self {
-            engine,
+            engine: ManuallyDrop::new(engine),
             module_ref,
             token: std::sync::OnceLock::new(),
         }
@@ -497,16 +500,19 @@ impl WindowsTtsEngine {
 }
 impl Drop for WindowsTtsEngine {
     fn drop(&mut self) {
-        // TODO: drop user type so that it doesn't panic out of the COM
-        // wrapper's free function.
-        log::debug!(
-            "WindowsTtsEngine was dropped, module_refs: {}",
-            if let Some(count) = self.module_ref.as_ref().map(Arc::strong_count) {
-                count.to_string()
-            } else {
-                "untracked".to_string()
-            }
-        );
+        safe_catch_unwind(AssertUnwindSafe(|| unsafe {
+            // Drop user type so that it doesn't panic out of the COM wrapper's free function:
+            ManuallyDrop::drop(&mut self.engine);
+
+            log::debug!(
+                "WindowsTtsEngine was dropped, module_refs: {}",
+                if let Some(count) = self.module_ref.as_ref().map(Arc::strong_count) {
+                    count.to_string()
+                } else {
+                    "untracked".to_string()
+                }
+            );
+        }));
     }
 }
 
@@ -519,21 +525,24 @@ impl WindowsTtsEngineFactory {
         Self {
             tts_engine_class_id: engine_class_id,
             module_ref,
-            create_tts_engine: Box::new(move || Box::new(create_engine())),
+            create_tts_engine: ManuallyDrop::new(Box::new(move || Box::new(create_engine()))),
         }
     }
 }
 impl Drop for WindowsTtsEngineFactory {
     fn drop(&mut self) {
-        // TODO: drop user type so that it doesn't panic out of the COM
-        // wrapper's free function.
-        log::debug!(
-            "WindowsTtsEngineFactory was dropped, module_refs: {}",
-            if let Some(count) = self.module_ref.as_ref().map(Arc::strong_count) {
-                count.to_string()
-            } else {
-                "untracked".to_string()
-            }
-        );
+        safe_catch_unwind(AssertUnwindSafe(|| unsafe {
+            // Drop user type so that it doesn't panic out of the COM wrapper's free function:
+            ManuallyDrop::drop(&mut self.create_tts_engine);
+
+            log::debug!(
+                "WindowsTtsEngineFactory was dropped, module_refs: {}",
+                if let Some(count) = self.module_ref.as_ref().map(Arc::strong_count) {
+                    count.to_string()
+                } else {
+                    "untracked".to_string()
+                }
+            );
+        }));
     }
 }

@@ -224,6 +224,7 @@ fn main() -> anyhow::Result<()> {
                 "Ensure the installer program is in the same folder as the \
                 text-to-speech engine DLL you want to install.\n"
             );
+            continue;
         }
 
         let was_first = std::mem::replace(&mut first, false);

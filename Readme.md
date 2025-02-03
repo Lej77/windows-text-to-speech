@@ -72,7 +72,7 @@ Example file structure:
   - `piper_models`
     - `en_US-libritts_r-medium.onnx`
     - `en_US-libritts_r-medium.onnx.json`
-    - `en_US-libritts_r-medium.voice.txt`
+    - `en_US-libritts_r-medium.voice.txt` (optional)
   - `windows_tts_engine.dll`
   - `windows_tts_engine_installer.exe`
   - `windows_tts_engine_piper.dll`

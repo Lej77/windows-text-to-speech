@@ -76,6 +76,9 @@ Example file structure:
   - `windows_tts_engine.dll`
   - `windows_tts_engine_installer.exe`
   - `windows_tts_engine_piper.dll`
+  - `windows_tts_engine_piper.debug.log` (only when debugging, will grow in size without any limit)
+
+Both text-to-speech engine DLL can write debug logs if there is a `DLL_NAME.debug.log` file present next to the engine DLL. This is useful if the text to speech engine is not working properly and you want to determine why. Make sure to delete the log file after you finish debugging since otherwise the engine will keep writing debug logs into it forever, which might eventually make it quite large.
 
 ## References
 

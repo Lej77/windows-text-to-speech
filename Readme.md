@@ -78,7 +78,15 @@ Example file structure:
   - `windows_tts_engine_piper.dll`
   - `windows_tts_engine_piper.debug.log` (only when debugging, will grow in size without any limit)
 
+### Debugging text-to-speech engine DLL
+
 Both text-to-speech engine DLL can write debug logs if there is a `DLL_NAME.debug.log` file present next to the engine DLL. This is useful if the text to speech engine is not working properly and you want to determine why. Make sure to delete the log file after you finish debugging since otherwise the engine will keep writing debug logs into it forever, which might eventually make it quite large.
+
+### Prerequisites for `windows_tts_engine_piper.dll`
+
+The `windows_tts_engine_piper.dll` DLL is not statically linked to the C runtime so to use it you need to install the [`Microsoft Visual C++ Runtime`](https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist?view=msvc-170).
+
+The piper text-to-speech engine also requires eSpeak NG data files. You can download them from [`piper-rs`'s GitHub releases](https://github.com/thewh1teagle/piper-rs/releases/tag/espeak-ng-files) or by simply [installing eSpeak NG](https://github.com/espeak-ng/espeak-ng/releases) itself.
 
 ## References
 

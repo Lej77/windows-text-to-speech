@@ -15,16 +15,19 @@ crate-type = ["cdylib"]
 [features]
 default = ["direct_output"]
 
+# Optionally output directly to audio device (simpler but not how SAPI is expected to work):
 direct_output = ["dep:rodio"]
+
+# Disable any logging in release mode
+disable_logging_in_release = [
+    "windows_tts_engine/disable_logging_in_release",
+    "log/release_max_level_off",
+]
 
 
 [dependencies]
 windows_tts_engine = { path = "../windows_tts_engine" } # We moved a lot of logic into this crate
-
-log = { workspace = true, features = [
-    "release_max_level_off",
-] } # Disable any logging in release mode
-
+log = { workspace = true } # Disable any logging in release mode
 serde = "1"
 serde_json = "1" # Load piper JSON configs
 piper-rs = "0.1" # Use piper TTS models in Rust (MIT) (but depends on eSpeak-ng so parts are likely GPLv3, https://github.com/lucasjinreal/Kokoros/issues/13)

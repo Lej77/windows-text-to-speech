@@ -12,12 +12,19 @@ description = "A DLL that is a COM server and offers a text-to-speech engine for
 name = "windows_tts_engine"
 crate-type = ["cdylib"]
 
+[features]
+default = []
+
+# Disable any logging in release mode
+disable_logging_in_release = [
+    "windows_tts_engine/disable_logging_in_release",
+    "log/release_max_level_off",
+]
+
+
 [dependencies]
 windows_tts_engine = { path = "../windows_tts_engine" } # We moved a lot of logic into this crate
-
-log = { workspace = true, features = [
-    "release_max_level_off",
-] } # Disable any logging in release mode
+log = { workspace = true }
 
 [dependencies.windows]
 workspace = true

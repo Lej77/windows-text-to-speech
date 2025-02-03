@@ -9,7 +9,7 @@ description = "Safer bindings for developing text-to-speech engines for Windows"
 
 [features]
 docs = [] # Nightly docs for cfg attribute
-release_logging = [] # Enable `DllLogger` in release mode
+disable_logging_in_release = [] # Disable `DllLogger` in release mode
 
 [dependencies]
 windows-core = { workspace = true } # Required by macros

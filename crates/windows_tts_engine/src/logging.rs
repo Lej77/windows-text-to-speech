@@ -1,11 +1,11 @@
 #![cfg_attr(
-    not(any(feature = "release_logging", debug_assertions)),
+    not(any(not(feature = "disable_logging_in_release"), debug_assertions)),
     expect(dead_code)
 )]
 
 use std::{path::PathBuf, sync::OnceLock};
 
-#[cfg(any(feature = "release_logging", debug_assertions))]
+#[cfg(any(not(feature = "disable_logging_in_release"), debug_assertions))]
 use crate::utils::{get_current_dll_path, safe_catch_unwind};
 
 pub struct DllLogger {
@@ -24,7 +24,7 @@ impl DllLogger {
         }
     }
     pub fn write_to_log(&self, _args: core::fmt::Arguments<'_>) {
-        #[cfg(any(feature = "release_logging", debug_assertions))]
+        #[cfg(any(not(feature = "disable_logging_in_release"), debug_assertions))]
         safe_catch_unwind::<_, ()>(std::panic::AssertUnwindSafe(|| {
             let Some(log_path) = self.log_path.get_or_init(|| {
                 let mut buffer = [0; windows::Win32::Foundation::MAX_PATH as usize];
@@ -39,7 +39,7 @@ impl DllLogger {
             };
 
             if let Ok(mut file) = std::fs::OpenOptions::new()
-                .create(true)
+                .create(false)
                 .append(true)
                 .open(log_path)
             {
@@ -48,7 +48,7 @@ impl DllLogger {
         }));
     }
     pub fn install(&'static self) {
-        #[cfg(any(feature = "release_logging", debug_assertions))]
+        #[cfg(any(not(feature = "disable_logging_in_release"), debug_assertions))]
         self.init.call_once(|| {
             safe_catch_unwind::<_, ()>(|| {
                 if let Err(e) = log::set_logger(self) {

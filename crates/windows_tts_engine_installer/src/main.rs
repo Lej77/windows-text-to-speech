@@ -16,7 +16,7 @@ use windows::{
             LibraryLoader::GetModuleFileNameW,
             Registry::{
                 RegCreateKeyExW, RegDeleteKeyExW, RegSetValueExW, HKEY_CURRENT_USER, KEY_SET_VALUE,
-                KEY_WOW64_64KEY, REG_SZ,
+                REG_SZ,
             },
         },
     },
@@ -107,7 +107,7 @@ fn add_uninstall_registry_key() -> anyhow::Result<()> {
             None,
             None,
             Default::default(),
-            KEY_SET_VALUE | KEY_WOW64_64KEY,
+            KEY_SET_VALUE,
             None,
             &mut key,
             None,
@@ -137,7 +137,7 @@ fn remove_uninstall_registry_key() -> anyhow::Result<()> {
         RegDeleteKeyExW(
             HKEY_CURRENT_USER,
             UNINSTALL_REG_KEY,
-            KEY_WOW64_64KEY.0,
+            0,
             None,
         )
     }

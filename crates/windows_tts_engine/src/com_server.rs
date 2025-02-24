@@ -31,7 +31,7 @@ use windows::Win32::{
         Ole::SELFREG_E_CLASS,
         Registry::{
             RegCreateKeyExW, RegDeleteKeyExW, RegSetValueExW, HKEY_CLASSES_ROOT, KEY_SET_VALUE,
-            KEY_WOW64_64KEY, REG_SZ,
+            REG_SZ,
         },
     },
 };
@@ -372,7 +372,7 @@ impl ComClassInfo<'_> {
                 None,
                 None,
                 Default::default(),
-                KEY_SET_VALUE | KEY_WOW64_64KEY,
+                KEY_SET_VALUE,
                 None,
                 &mut key,
                 None,
@@ -404,7 +404,7 @@ impl ComClassInfo<'_> {
                 None,
                 None,
                 Default::default(),
-                KEY_SET_VALUE | KEY_WOW64_64KEY,
+                KEY_SET_VALUE,
                 None,
                 &mut sub_key,
                 None,
@@ -476,9 +476,7 @@ impl ComClassInfo<'_> {
         ];
 
         for key_to_delete in keys_to_delete {
-            let result = unsafe {
-                RegDeleteKeyExW(HKEY_CLASSES_ROOT, key_to_delete, KEY_WOW64_64KEY.0, None)
-            };
+            let result = unsafe { RegDeleteKeyExW(HKEY_CLASSES_ROOT, key_to_delete, 0, None) };
             if result != ERROR_FILE_NOT_FOUND {
                 result.ok()?;
             }

@@ -4,8 +4,7 @@ use crate::utils::{display_guid, to_utf16};
 use windows::Win32::{
     Foundation::{ERROR_FILE_NOT_FOUND, E_FAIL},
     System::Registry::{
-        RegCreateKeyExW, RegDeleteKeyExW, RegSetValueExW, HKEY, KEY_SET_VALUE, KEY_WOW64_64KEY,
-        REG_SZ,
+        RegCreateKeyExW, RegDeleteKeyExW, RegSetValueExW, HKEY, KEY_SET_VALUE, REG_SZ,
     },
 };
 use windows_core::{w, Free, GUID, PCWSTR};
@@ -77,7 +76,7 @@ impl VoiceAttributes {
                 None,
                 None,
                 Default::default(),
-                KEY_SET_VALUE | KEY_WOW64_64KEY,
+                KEY_SET_VALUE,
                 None,
                 &mut attributes_key,
                 None,
@@ -118,7 +117,7 @@ impl VoiceAttributes {
             RegDeleteKeyExW(
                 voice_key.parent_handle(),
                 voice_key.sub_key_path("Attributes", &mut sub_key_buffer),
-                KEY_WOW64_64KEY.0,
+                0,
                 None,
             )
         };
@@ -173,7 +172,7 @@ impl VoiceKeyData {
                     None,
                     None,
                     Default::default(),
-                    KEY_SET_VALUE | KEY_WOW64_64KEY,
+                    KEY_SET_VALUE,
                     None,
                     &mut key,
                     None,
@@ -228,7 +227,7 @@ impl VoiceKeyData {
             RegDeleteKeyExW(
                 tokens_key.parent_handle(),
                 tokens_key.sub_key_path(&self.key_name, &mut voice_key),
-                KEY_WOW64_64KEY.0,
+                0,
                 None,
             )
         };

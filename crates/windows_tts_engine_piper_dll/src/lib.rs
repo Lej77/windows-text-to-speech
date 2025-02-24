@@ -175,8 +175,7 @@ impl SafeTtsEngine for OurTtsEngine {
         let text_utf16 = TextFragIter::new(text_fragments)
             .flat_map(|frag| frag.utf16_text().iter().copied().chain([' ' as u16]))
             .collect::<Vec<u16>>();
-        let all_text = String::from_utf16_lossy(&text_utf16);
-        log::debug!("Speak: {all_text}");
+        log::debug!("Speak: {}", String::from_utf16_lossy(&text_utf16));
 
         let Some(models) = self.list_models() else {
             return Ok(());
@@ -211,7 +210,7 @@ impl SafeTtsEngine for OurTtsEngine {
             log::debug!("Speak - Skipped language detection since only one language is installed");
             vec![DetectedLanguage {
                 start: 0,
-                end: all_text.len().saturating_sub(1),
+                end: text_utf16.len().saturating_sub(1),
                 languages: Vec::new(),
             }]
         };

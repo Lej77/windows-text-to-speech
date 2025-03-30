@@ -22,7 +22,7 @@ use windows_tts_engine::{
     com_server::{
         dll_export_com_server_fns, ComClassInfo, ComServerPath, ComThreadingModel, SafeTtsComServer,
     },
-    detect_languages::{has_multiple_languages, DetectedLanguage, DetectionService},
+    detect_languages::{has_multiple_languages, DetectedLanguage, LinguaDetectionService},
     logging::DllLogger,
     utils::get_current_dll_path,
     voices::{ParentRegKey, VoiceAttributes, VoiceKeyData},
@@ -196,13 +196,41 @@ impl SafeTtsEngine for OurTtsEngine {
 
         let detected_language_ranges = if has_multiple_languages {
             let started_lang_detect = Instant::now();
-            let detected = DetectionService::new()
+
+            let prefer_lingua = cfg!(feature = "lingua")
+                && unsafe { _token.GetId()?.to_string()? }.ends_with("LINGUA");
+
+            let detection_service = if prefer_lingua {
+                let output_languages: Vec<&str> = models
+                    .iter()
+                    .filter_map(|info| {
+                        if let Some(lang) = &info.language {
+                            Some(lang.code.as_str())
+                        } else {
+                            log::warn!("No language info for model at: {:?}", info.path);
+                            None
+                        }
+                    })
+                    .collect();
+                LinguaDetectionService::with_lingua(&output_languages)
+            } else {
+                LinguaDetectionService::with_microsoft_language_detection()
+            };
+
+            let detected = detection_service
                 .expect("Failed to find language detection service")
                 .recognize_text(&text_utf16)
                 .expect("Failed to recognize text language");
 
             log::debug!(
-                "Speak - Detected languages (duration: {:?}",
+                "Speak - Detected languages{} (duration: {:?})",
+                if cfg!(not(feature = "lingua")) {
+                    ""
+                } else if prefer_lingua {
+                    " using the Lingua library"
+                } else {
+                    " using Microsoft Language Detection"
+                },
                 started_lang_detect.elapsed()
             );
             detected
@@ -371,6 +399,22 @@ fn multilingual_voice_data() -> VoiceKeyData {
     }
 }
 
+#[cfg(feature = "lingua")]
+fn multilingual_lingua_voice_data() -> VoiceKeyData {
+    VoiceKeyData {
+        key_name: "Lej77_TTS_PIPER_MULTILINGUAL_LINGUA".to_owned(),
+        long_name: "Lej77 - Piper - Multilingual (Lingua)".to_owned(),
+        class_id: CLSID_PIPER_TTS_ENGINE,
+        attributes: VoiceAttributes {
+            name: "Piper Multilingual (Lingua)".to_owned(),
+            gender: "Male".to_owned(),
+            age: "Adult".to_owned(),
+            language: "409".to_owned(), // en-US
+            vendor: "Lej77 at GitHub".to_owned(),
+        },
+    }
+}
+
 /// The "class ID" this text-to-speech engine is identified by. This value needs
 /// to match the value used when registering the engine to the Windows registry.
 ///
@@ -405,35 +449,47 @@ impl SafeTtsComServer for TtsComServer {
         .register()
         .expect("Failed to register COM Class");
 
-        let voice = multilingual_voice_data();
-        voice
-            .write_to_registry(ParentRegKey::Path(
-                HKEY_LOCAL_MACHINE,
-                "SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\",
-            ))
-            .expect("Failed to register multilingual voice");
-        voice
-            .write_to_registry(ParentRegKey::Path(
-                HKEY_LOCAL_MACHINE,
-                "SOFTWARE\\Microsoft\\Speech_OneCore\\Voices\\Tokens\\",
-            ))
-            .expect("Failed to register multilingual data to modern voice path");
+        let voices = [
+            multilingual_voice_data(),
+            #[cfg(feature = "lingua")]
+            multilingual_lingua_voice_data(),
+        ];
+        for voice in voices {
+            voice
+                .write_to_registry(ParentRegKey::Path(
+                    HKEY_LOCAL_MACHINE,
+                    "SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\",
+                ))
+                .expect("Failed to register voice");
+            voice
+                .write_to_registry(ParentRegKey::Path(
+                    HKEY_LOCAL_MACHINE,
+                    "SOFTWARE\\Microsoft\\Speech_OneCore\\Voices\\Tokens\\",
+                ))
+                .expect("Failed to register voice in modern voice path");
+        }
     }
 
     fn unregister_server() {
-        let voice = multilingual_voice_data();
-        voice
-            .remove_from_registry(ParentRegKey::Path(
-                HKEY_LOCAL_MACHINE,
-                "SOFTWARE\\Microsoft\\Speech_OneCore\\Voices\\Tokens\\",
-            ))
-            .expect("Failed to unregister multilingual data from modern voice path");
-        voice
-            .remove_from_registry(ParentRegKey::Path(
-                HKEY_LOCAL_MACHINE,
-                "SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\",
-            ))
-            .expect("Failed to unregister multilingual voice");
+        let voices = [
+            multilingual_voice_data(),
+            #[cfg(feature = "lingua")]
+            multilingual_lingua_voice_data(),
+        ];
+        for voice in voices {
+            voice
+                .remove_from_registry(ParentRegKey::Path(
+                    HKEY_LOCAL_MACHINE,
+                    "SOFTWARE\\Microsoft\\Speech_OneCore\\Voices\\Tokens\\",
+                ))
+                .expect("Failed to unregister voice from modern voices path");
+            voice
+                .remove_from_registry(ParentRegKey::Path(
+                    HKEY_LOCAL_MACHINE,
+                    "SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\",
+                ))
+                .expect("Failed to unregister voice");
+        }
 
         ComClassInfo::unregister_class_id(CLSID_PIPER_TTS_ENGINE)
             .expect("Failed to unregister text-to-speech engine's COM Class");

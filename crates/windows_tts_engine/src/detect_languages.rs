@@ -1,3 +1,5 @@
+#[cfg(feature = "lingua")]
+use std::str::FromStr;
 use std::{ptr::null_mut, string::FromUtf16Error};
 
 use windows::{
@@ -8,6 +10,9 @@ use windows::{
         MAPPING_SERVICE_INFO,
     },
 };
+
+#[cfg(feature = "lingua")]
+use lingua::{IsoCode639_1, IsoCode639_3, Language, LanguageDetector, LanguageDetectorBuilder};
 
 pub fn equal_language_codes(first: &str, second: &str) -> bool {
     const SEPARATORS: [char; 2] = ['_', '-'];
@@ -93,7 +98,7 @@ impl DetectedLanguage {
     }
 }
 
-/// Language detection service info.
+/// Language detection service handle for Microsoft Language Detection.
 pub struct DetectionService {
     service: *mut MAPPING_SERVICE_INFO,
 }
@@ -183,5 +188,90 @@ impl Drop for DetectionService {
     fn drop(&mut self) {
         // TODO: log error
         _ = unsafe { MappingFreeServices(self.service) };
+    }
+}
+
+enum LinguaDetectionServiceState {
+    #[cfg(feature = "lingua")]
+    Lingua(Box<LanguageDetector>),
+    Microsoft(DetectionService),
+}
+
+/// Language detection using the [`lingua`] crate or using the Microsoft
+/// Language Detection ([`DetectionService`]).
+pub struct LinguaDetectionService {
+    state: LinguaDetectionServiceState,
+}
+impl LinguaDetectionService {
+    /// Use [`lingua`] for language detection if the `lingua` Cargo feature is enabled, otherwise use
+    /// [`DetectionService`] for language detection.
+    pub fn with_lingua<S: AsRef<str>>(_languages: &[S]) -> Result<Self, DetectionError> {
+        #[cfg(feature = "lingua")]
+        {
+            let languages: Vec<Language> = _languages
+                .iter()
+                .map(AsRef::as_ref)
+                // ignore suffix in codes like "en-US"
+                .map(|lang| {
+                    lang.split_once(['_', '-'])
+                        .map(|(prefix, _)| prefix)
+                        .unwrap_or(lang)
+                })
+                .filter_map(|lang| match IsoCode639_1::from_str(lang) {
+                    Ok(v) => Some(Language::from_iso_code_639_1(&v)),
+                    Err(_) => match IsoCode639_3::from_str(lang) {
+                        Ok(v) => Some(Language::from_iso_code_639_3(&v)),
+                        Err(_) => {
+                            log::warn!("Failed to identify language {lang:?}");
+                            None
+                        }
+                    },
+                })
+                .collect();
+            Ok(Self {
+                state: LinguaDetectionServiceState::Lingua(Box::new(
+                    LanguageDetectorBuilder::from_languages(&languages).build(),
+                )),
+            })
+        }
+
+        #[cfg(not(feature = "lingua"))]
+        Self::with_microsoft_language_detection()
+    }
+    pub fn with_microsoft_language_detection() -> Result<Self, DetectionError> {
+        Ok(Self {
+            state: LinguaDetectionServiceState::Microsoft(DetectionService::new()?),
+        })
+    }
+
+    pub fn recognize_text(
+        &self,
+        text_utf16: &[u16],
+    ) -> Result<Vec<DetectedLanguage>, DetectionError> {
+        match &self.state {
+            #[cfg(feature = "lingua")]
+            LinguaDetectionServiceState::Lingua(detector) => {
+                let text = String::from_utf16_lossy(text_utf16);
+                let result = detector.detect_multiple_languages_of(text.as_str());
+                Ok(result
+                    .into_iter()
+                    .map(|detected| {
+                        let start = text[..detected.start_index()].encode_utf16().count();
+                        let len = text[detected.start_index()..detected.end_index()]
+                            .encode_utf16()
+                            .count();
+                        let end = start + len - 1;
+                        DetectedLanguage {
+                            start,
+                            end,
+                            languages: vec![detected.language().iso_code_639_1().to_string()],
+                        }
+                    })
+                    .collect())
+            }
+            LinguaDetectionServiceState::Microsoft(detection_service) => {
+                detection_service.recognize_text(text_utf16)
+            }
+        }
     }
 }

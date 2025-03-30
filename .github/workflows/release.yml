@@ -48,6 +48,18 @@ jobs:
           name: release_installer
           path: target/release/windows_tts_engine_installer.exe
 
+      - name: Build release dll (with lingua)
+        run: cargo build --release --package windows_tts_engine_dll --features lingua
+        env:
+          # https://rust-lang.github.io/rfcs/1721-crt-static.html
+          RUSTFLAGS: -C target-feature=+crt-static
+
+      - name: Upload engine dll
+        uses: actions/upload-artifact@v4
+        with:
+          name: release_lingua_dll
+          path: target/release/windows_tts_engine.dll
+
   piper-build:
     name: Build piper text-to-speech engine
     runs-on: windows-latest
@@ -61,13 +73,22 @@ jobs:
       #- name: Configure cache
       #  uses: Swatinem/rust-cache@v2
 
-      - name: Build release dll
+      - name: Build release dll (without lingua)
         run: cargo build --release --package windows_tts_engine_piper_dll
 
-      - name: Upload engine dll
+      - name: Upload engine dll (without lingua)
         uses: actions/upload-artifact@v4
         with:
           name: release_piper_dll
+          path: target/release/windows_tts_engine_piper.dll
+
+      - name: Build release dll (with lingua)
+        run: cargo build --release --package windows_tts_engine_piper_dll --features lingua
+
+      - name: Upload engine dll (with lingua)
+        uses: actions/upload-artifact@v4
+        with:
+          name: release_piper_lingua_dll
           path: target/release/windows_tts_engine_piper.dll
 
   release:
@@ -96,6 +117,18 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: release_installer
+
+      - name: Download dll from previous job
+        uses: actions/download-artifact@v4
+        with:
+          name: release_lingua_dll
+          path: ./lingua/
+
+      - name: Download piper dll from previous job
+        uses: actions/download-artifact@v4
+        with:
+          name: release_piper_lingua_dll
+          path: ./lingua/
 
       # Create the release:  https://github.com/actions/create-release
       - name: Create release
@@ -156,5 +189,29 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}  # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
           asset_path: windows_tts_engine_installer.exe
           asset_name: windows_tts_engine_installer.exe
+          # https://stackoverflow.com/questions/41459168/which-mime-type-is-correct-for-the-exe-file
+          asset_content_type: application/vnd.microsoft.portable-executable
+
+      - name: Upload release asset (lingua dll)
+        id: upload-release-asset-lingua-dll
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}  # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: lingua/windows_tts_engine.dll
+          asset_name: windows_tts_engine_lingua.dll
+          # https://stackoverflow.com/questions/41459168/which-mime-type-is-correct-for-the-exe-file
+          asset_content_type: application/vnd.microsoft.portable-executable
+
+      - name: Upload release asset (piper lingua dll)
+        id: upload-release-asset-piper-lingua-dll
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}  # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: lingua/windows_tts_engine_piper.dll
+          asset_name: windows_tts_engine_piper_lingua.dll
           # https://stackoverflow.com/questions/41459168/which-mime-type-is-correct-for-the-exe-file
           asset_content_type: application/vnd.microsoft.portable-executable

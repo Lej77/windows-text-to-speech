@@ -18,13 +18,18 @@ default = ["direct_output"]
 # Optionally output directly to audio device (simpler but not how SAPI is expected to work):
 direct_output = ["dep:rodio"]
 
+# Use the Lingua crate for language detection.
+lingua = ["windows_tts_engine/lingua"]
+
 # Disable any logging in release mode
 disable_logging_in_release = [
     "windows_tts_engine/disable_logging_in_release",
     "log/release_max_level_off",
 ]
+
 # Support 32bit builds: https://docs.rs/ort/1.16.3/ort/#how-to-get-binaries
 ort_load_dynamic = ["ort/load-dynamic"]
+
 
 [dependencies]
 windows_tts_engine = { path = "../windows_tts_engine" } # We moved a lot of logic into this crate

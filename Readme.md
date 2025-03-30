@@ -42,6 +42,9 @@ cargo uninstall windows_tts_cli
 
 1. Acquire `windows_tts_engine_installer.exe` and at least one text-to-speech engine like `windows_tts_engine.dll` or `windows_tts_engine_piper.dll`.
    - You can find them in the [latest GitHub release](https://github.com/Lej77/windows-text-to-speech/releases).
+     - The `windows_tts_engine_piper_lingua.dll` file is an alternative to `windows_tts_engine_piper.dll` and should be renamed to that before running the installer.
+       - This alternative DLL uses the [`lingua`](https://crates.io/crates/lingua) Rust library for language detection.
+       - The DLL has a larger file size and the `lingua` will also use more RAM but it should be slightly better at detecting languages.
    - Or you can build them from source:
      1. [Install Rust](https://www.rust-lang.org/tools/install)
      2. Clone this repository:\

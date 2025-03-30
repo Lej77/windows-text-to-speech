@@ -8,12 +8,16 @@ license.workspace = true
 description = "Safer bindings for developing text-to-speech engines for Windows"
 
 [features]
+default = []
+
 docs = [] # Nightly docs for cfg attribute
 disable_logging_in_release = [] # Disable `DllLogger` in release mode
+lingua = ["dep:lingua"] # Use lingua crate for language detection
 
 [dependencies]
 windows-core = { workspace = true } # Required by macros
 log = { workspace = true }
+lingua = { version = "1.7.1", optional = true } # Language detection
 
 [dependencies.windows]
 workspace = true

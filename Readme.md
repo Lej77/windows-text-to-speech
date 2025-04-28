@@ -2,7 +2,7 @@
 
 This repository contains a Rust CLI program that uses Windows' text-to-speech APIs to read text passed to the program. You can find the source code in `./crates/windows_tts_cli/`.
 
-This repository also contains a text-to-speech engine which uses Microsoft Language Detection to determine the sent language and then selects a voice in that language and plays the text using the `Windows.Media.SpeechSynthesis.SpeechSynthesizer` class.
+This repository also contains a text-to-speech engine which uses Microsoft Language Detection to determine the sent language and then selects a voice in that language and plays the text using the `Windows.Media.SpeechSynthesis.SpeechSynthesizer` class. The engine can alternatively use the [`lingua`](https://crates.io/crates/lingua) Rust library for better language detection and/or the [`piper-rs`](https://crates.io/crates/piper-rs) Rust library for text-to-speech.
 
 ## Usage of `windows_tts_cli`
 

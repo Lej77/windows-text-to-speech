@@ -6,40 +6,6 @@ repository.workspace = true
 authors.workspace = true
 license.workspace = true
 
-[features]
-natural-tts = ["dep:natural-tts"]
-tts_rust = ["dep:tts_rust"]
-piper-rs = ["dep:piper-rs", "dep:rodio"]
-
-[dependencies]
-anyhow = "1"                                    # Errors with backtrace
-clap = { version = "4", features = ["derive"] } # Parse CLI arguments
-
-natural-tts = { version = "0.1.5", optional = true } # High-level bindings to a variety of text-to-speech libraries. (MIT)
-tts_rust = { version = "0.3.5", optional = true }    # Simple & easy text-to-speech module for your needs.
-piper-rs = { version = "0.1", optional = true }      # Use piper TTS models in Rust (MIT)
-rodio = { version = "0.20", optional = true }        # Audio playback library
-
-[dependencies.windows]
-workspace = true
-features = [
-    "Win32_System_Com",               # Common COM functionality
-    "Win32_Media_Speech",             # Legacy text-to-speech API
-    "Media_SpeechSynthesis",          # Modern text-to-speech API
-    "Media_Core",                     # Modern text-to-speech API (some extra methods)
-    "Storage_Streams",                # Modern text-to-speech API (some extra methods)
-    "Media_Playback",                 # Play audio from modern text-to-speech
-    "Win32_Globalization",            # Detect language
-    "Foundation_Collections",         # Collection with all voices
-    "Wdk_System_SystemServices",      # For RtlGetVersion
-    "Win32_System_SystemInformation", # For RtlGetVersion return type
-    "Storage_Streams",                # For DataReader
-]
-
-[build-dependencies]
-winresource = { workspace = true }
-
-
 # Inform `cargo-binstall` how to download from our releases:
 # https://github.com/cargo-bins/cargo-binstall/blob/main/SUPPORT.md
 [package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
@@ -50,3 +16,33 @@ pkg-fmt = "bin"
 # If we ever publish to crates.io:
 [package.metadata.docs.rs]
 targets = ["x86_64-pc-windows-msvc"]
+
+[features]
+natural-tts = ["dep:natural-tts"]
+piper-rs = ["dep:piper-rs", "dep:rodio"]
+
+[dependencies]
+anyhow = "1"                                    # Errors with backtrace
+clap = { version = "4", features = ["derive"] } # Parse CLI arguments
+
+natural-tts = { version = "0.1.5", optional = true } # High-level bindings to a variety of text-to-speech libraries. (MIT)
+piper-rs = { version = "0.1", optional = true }      # Use piper TTS models in Rust (MIT)
+rodio = { version = "0.20", optional = true }        # Audio playback library
+
+[dependencies.windows]
+workspace = true
+features = [
+    "Win32_System_Com",               # Common COM functionality
+    "Win32_Media_Speech",             # Legacy text-to-speech API
+    "Media_SpeechSynthesis",          # Modern text-to-speech API
+    "Media_Core",                     # Modern text-to-speech API (some extra methods)
+    "Storage_Streams",                # Modern text-to-speech API (some extra methods) also for DataReader
+    "Media_Playback",                 # Play audio from modern text-to-speech
+    "Win32_Globalization",            # Detect language
+    "Foundation_Collections",         # Collection with all voices
+    "Wdk_System_SystemServices",      # For RtlGetVersion
+    "Win32_System_SystemInformation", # For RtlGetVersion return type
+]
+
+[build-dependencies]
+winresource = { workspace = true }

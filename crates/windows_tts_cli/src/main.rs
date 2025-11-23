@@ -513,17 +513,6 @@ fn main() -> anyhow::Result<()> {
         println!("Finished with MSEdge voice output\n");
     }
 
-    #[cfg(feature = "tts_rust")]
-    {
-        use tts_rust::tts::GTTSClient;
-
-        let narrator: GTTSClient = GTTSClient::default();
-        narrator
-            .speak(&text[..text.len().min(50)])
-            .map_err(|e| anyhow::anyhow!(e))?;
-        println!("Finished with Google text-to-speech output (from cloud service)\n");
-    }
-
     #[cfg(feature = "piper-rs")]
     {
         use piper_rs::synth::PiperSpeechSynthesizer;

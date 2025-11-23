@@ -124,15 +124,30 @@ The piper text-to-speech engine also requires eSpeak NG data files. You can down
   - [Limited Access to embedded Speech](https://learn.microsoft.com/en-us/legal/cognitive-services/speech-service/embedded-speech/limited-access-embedded-speech?context=%2Fazure%2Fai-services%2Fspeech-service%2Fcontext%2Fcontext)
     > Embedded Speech is designed for on-device speech to text and text to speech scenarios where cloud connectivity is intermittent or unavailable. Microsoft's embedded Speech feature is a Limited Access feature available by registration only, and only for certain use cases.
   - [exgd0419/NaturalVoiceSAPIAdapter - Hack to make Azure natural TTS voices accessible to any SAPI 5-compatible application](https://github.com/gexgd0419/NaturalVoiceSAPIAdapter)
-- <https://www.reddit.com/r/androidapps/comments/1fzu0vu/local_offline_neural_texttospeech_on_android/>
-  - <https://github.com/rhasspy/piper>: A fast, local neural text to speech system
-    - Related search found:
-      - <https://github.com/thewh1teagle/piper-rs>
-        - Simple CLI: <https://crates.io/crates/piper-rs-cli>
-      - <https://users.rust-lang.org/t/text-to-speech-for-rust/110824>
-  - <https://github.com/k2-fsa/sherpa-onnx>: Speech-to-text, text-to-speech, speaker diarization, and VAD using next-gen Kaldi with onnxruntime without Internet connection
-    - <https://github.com/thewh1teagle/sherpa-rs>: Rust bindings to `k2-fsa/sherpa-onnx`
-      - Supports model recommended at: [Kokoro TTS works now in Rust : r/rust](https://www.reddit.com/r/rust/comments/1i4kqmv/kokoro_tts_works_now_in_rust/)
+- <https://github.com/rhasspy/piper>: A fast, local neural text to speech system
+  - Recommended at: <https://www.reddit.com/r/androidapps/comments/1fzu0vu/local_offline_neural_texttospeech_on_android/>
+  - Related search found:
+    - [`piper-rs` crate](https://crates.io/crates/piper-rs/)
+      - The [`piper-rs-cli` crate](https://crates.io/crates/piper-rs-cli) offers a simple CLI
+    - <https://users.rust-lang.org/t/text-to-speech-for-rust/110824>
+    - [`piper-tts-rust` crate](https://crates.io/crates/piper-tts-rust)
+      - Doesn't use `espeak-ng` for phonemization, instead uses [cisco-ai/mini-bart-g2p](https://huggingface.co/cisco-ai/mini-bart-g2p) and so only supports English
+      - Mentions it considered using [`CMUdict`](https://github.com/cmusphinx/cmudict) for phonemization (also only supports English)
+      - Perhaps it could be ported to use a model such as [lingjzhu/CharsiuG2P: Multilingual G2P in 100 languages](https://github.com/lingjzhu/CharsiuG2P)
+- [`Kokoro` TTS model](https://huggingface.co/hexgrad/Kokoro-82M):
+  - [`sherpa-rs` crate](https://crates.io/crates/sherpa-rs): Rust bindings to [`k2-fsa/sherpa-onnx`](https://github.com/k2-fsa/sherpa-onnx)
+    - <https://github.com/k2-fsa/sherpa-onnx>: Speech-to-text, text-to-speech, speaker diarization, and VAD using next-gen Kaldi with onnxruntime without Internet connection
+    - [TTS models - sherpa-onnx text-to-speech samples](https://k2-fsa.github.io/sherpa/onnx/tts/all/)
+    - Kokoro model supported by sherpa: [Kokoro TTS works now in Rust : r/rust](https://www.reddit.com/r/rust/comments/1i4kqmv/kokoro_tts_works_now_in_rust/)
+  - [lucasjinreal/Kokoros: 🔥🔥 Kokoro in Rust. https://huggingface.co/hexgrad/Kokoro-82M Insanely fast, realtime TTS with high quality you ever have.](https://github.com/lucasjinreal/Kokoros)
+    - Forked as: [WismutHansen/kokorox: Kokoro in Rust. https://huggingface.co/hexgrad/Kokoro-82M Insanely fast, realtime TTS with high quality you ever have.](https://github.com/wismuthansen/kokorox)
+      - Published as crate [`kokorox`](https://crates.io/crates/kokorox)
+      - Seems to focus on supporting languages other than English.
+  - [`kokoro-tts` crate](https://lib.rs/crates/kokoro-tts) (Chinese Readme) (deps: [`ort`](https://crates.io/crates/ort)) (doesn't seem to rely on `espeak`, instead seems to manually do phonemization of Chinese using [`pinyin`](https://crates.io/crates/pinyin) and [`jieba-rs`](https://crates.io/crates/jieba-rs))
+  - [`kokoroxide` crate](https://crates.io/crates/kokoroxide) (WIP, mentions English only so far) (deps: [`espeak-ng`](https://github.com/espeak-ng/espeak-ng) (links directly), [`ort`](https://crates.io/crates/ort))
+  - [`kokoro-tiny` crate](https://crates.io/crates/kokoro-tiny) (deps: [`espeak-rs`](https://crates.io/crates/espeak-rs), [`ort`](https://crates.io/crates/ort))
+- [supertone-inc/supertonic: Lightning-fast, on-device TTS — running natively via ONNX.](https://github.com/supertone-inc/supertonic)
+  - Mentioned on Reddit: [Open-source on-device TTS model : r/rust](https://www.reddit.com/r/rust/comments/1p4ohus/opensource_ondevice_tts_model/)
 
 ### Develop new text-to-speech voices/engines for **legacy** Microsoft Speech API (SAPI)
 

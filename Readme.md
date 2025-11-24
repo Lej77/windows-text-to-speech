@@ -134,7 +134,7 @@ The piper text-to-speech engine also requires eSpeak NG data files. You can down
     - <https://users.rust-lang.org/t/text-to-speech-for-rust/110824>
     - [`piper-tts-rust` crate](https://crates.io/crates/piper-tts-rust)
       - Doesn't use `espeak-ng` for phonemization, instead uses [cisco-ai/mini-bart-g2p](https://huggingface.co/cisco-ai/mini-bart-g2p) and so only supports English
-      - Mentions it considered using [`CMUdict`](https://github.com/cmusphinx/cmudict) for phonemization (also only supports English)
+      - The Readme mentions that using [`CMUdict`](https://github.com/cmusphinx/cmudict) for phonemization (also only supports English) was considered.
       - Perhaps it could be ported to use a model such as [lingjzhu/CharsiuG2P: Multilingual G2P in 100 languages](https://github.com/lingjzhu/CharsiuG2P)
 - [`Kokoro` TTS model](https://huggingface.co/hexgrad/Kokoro-82M):
   - [`sherpa-rs` crate](https://crates.io/crates/sherpa-rs): Rust bindings to [`k2-fsa/sherpa-onnx`](https://github.com/k2-fsa/sherpa-onnx)

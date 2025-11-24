@@ -126,6 +126,7 @@ The piper text-to-speech engine also requires eSpeak NG data files. You can down
   - [exgd0419/NaturalVoiceSAPIAdapter - Hack to make Azure natural TTS voices accessible to any SAPI 5-compatible application](https://github.com/gexgd0419/NaturalVoiceSAPIAdapter)
 - <https://github.com/rhasspy/piper>: A fast, local neural text to speech system
   - Test it at: <https://piper.ttstool.com/>
+  - Find samples of all voices at: <https://rhasspy.github.io/piper-samples/>
   - Recommended at: <https://www.reddit.com/r/androidapps/comments/1fzu0vu/local_offline_neural_texttospeech_on_android/>
   - Related search found:
     - [`piper-rs` crate](https://crates.io/crates/piper-rs/)

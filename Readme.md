@@ -125,6 +125,7 @@ The piper text-to-speech engine also requires eSpeak NG data files. You can down
     > Embedded Speech is designed for on-device speech to text and text to speech scenarios where cloud connectivity is intermittent or unavailable. Microsoft's embedded Speech feature is a Limited Access feature available by registration only, and only for certain use cases.
   - [exgd0419/NaturalVoiceSAPIAdapter - Hack to make Azure natural TTS voices accessible to any SAPI 5-compatible application](https://github.com/gexgd0419/NaturalVoiceSAPIAdapter)
 - <https://github.com/rhasspy/piper>: A fast, local neural text to speech system
+  - Test it at: <https://piper.ttstool.com/>
   - Recommended at: <https://www.reddit.com/r/androidapps/comments/1fzu0vu/local_offline_neural_texttospeech_on_android/>
   - Related search found:
     - [`piper-rs` crate](https://crates.io/crates/piper-rs/)
